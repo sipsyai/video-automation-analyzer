@@ -1,7 +1,7 @@
 #!/bin/bash
 # validate_skill.sh - Run all validation checks
 
-echo "🔍 Running skill validation..."
+echo "[*] Running skill validation..."
 
 # Change to skill directory
 cd "$(dirname "$0")"
@@ -11,9 +11,9 @@ echo ""
 echo "1. Checking Python syntax..."
 python3 -m py_compile src/video_analyzer/*.py 2>/dev/null
 if [ $? -eq 0 ]; then
-    echo "✅ Python syntax valid"
+    echo "[OK] Python syntax valid"
 else
-    echo "❌ Python syntax errors found"
+    echo "[FAIL] Python syntax errors found"
     exit 1
 fi
 
@@ -24,13 +24,13 @@ if command -v pytest &> /dev/null; then
     # Skip integration tests (require API keys)
     pytest tests/ -v --tb=short -m "not integration"
     if [ $? -eq 0 ]; then
-        echo "✅ All tests passed"
+        echo "[OK] All tests passed"
     else
-        echo "❌ Tests failed"
+        echo "[FAIL] Tests failed"
         exit 1
     fi
 else
-    echo "⚠️  pytest not installed, skipping tests"
+    echo "[WARN] pytest not installed, skipping tests"
 fi
 
 # 3. Test coverage
@@ -38,7 +38,7 @@ echo ""
 echo "3. Checking test coverage..."
 if command -v pytest &> /dev/null; then
     # Skip integration tests for coverage (require API keys)
-    pytest tests/ -m "not integration" --cov=src/video_analyzer --cov-report=term 2>/dev/null || echo "⚠️  Coverage check skipped"
+    pytest tests/ -m "not integration" --cov=src/video_analyzer --cov-report=term 2>/dev/null || echo "[WARN] Coverage check skipped"
     echo "Target: >80% coverage (excluding integration tests)"
 fi
 
@@ -48,28 +48,28 @@ echo "4. Validating SKILL.md..."
 if [ -f "SKILL.md" ]; then
     # Check frontmatter
     if grep -q "^---$" SKILL.md; then
-        echo "✅ YAML frontmatter present"
+        echo "[OK] YAML frontmatter present"
     else
-        echo "❌ YAML frontmatter missing"
+        echo "[FAIL] YAML frontmatter missing"
         exit 1
     fi
 
     # Check required fields
     if grep -q "^name:" SKILL.md; then
-        echo "✅ name field present"
+        echo "[OK] name field present"
     else
-        echo "❌ name field missing"
+        echo "[FAIL] name field missing"
         exit 1
     fi
 
     if grep -q "^description:" SKILL.md; then
-        echo "✅ description field present"
+        echo "[OK] description field present"
     else
-        echo "❌ description field missing"
+        echo "[FAIL] description field missing"
         exit 1
     fi
 else
-    echo "❌ SKILL.md not found"
+    echo "[FAIL] SKILL.md not found"
     exit 1
 fi
 
@@ -82,11 +82,11 @@ echo "5. Checking for Windows-style paths..."
 # - Code blocks showing Windows commands
 FOUND_ISSUES=$(grep -r "\\\\" *.md docs/*.md 2>/dev/null | grep -v " \\\\$" | grep -v "C:\\\\" | grep -v "`.*\\\\.*`" | grep -v "examples\\\\")
 if [ -n "$FOUND_ISSUES" ]; then
-    echo "⚠️  Found potential Windows-style paths:"
+    echo "[WARN] Found potential Windows-style paths:"
     echo "$FOUND_ISSUES"
     echo "(Review above - Windows paths in examples are OK)"
 else
-    echo "✅ All paths use forward slashes (or legitimate backslash use)"
+    echo "[OK] All paths use forward slashes (or legitimate backslash use)"
 fi
 
 # 6. Health check
@@ -95,12 +95,12 @@ echo "6. Running health check..."
 if [ -f "scripts/health_check.py" ]; then
     python3 scripts/health_check.py
     if [ $? -eq 0 ]; then
-        echo "✅ Health check passed"
+        echo "[OK] Health check passed"
     else
-        echo "⚠️  Health check found issues (check dependencies)"
+        echo "[WARN] Health check found issues (check dependencies)"
     fi
 else
-    echo "⚠️  Health check script not found"
+    echo "[WARN] Health check script not found"
 fi
 
 # 7. Check file structure
@@ -109,23 +109,23 @@ echo "7. Checking file structure..."
 MISSING_DIRS=0
 for dir in docs scripts src tests evaluations; do
     if [ -d "$dir" ]; then
-        echo "✅ $dir/ exists"
+        echo "[OK] $dir/ exists"
     else
-        echo "❌ $dir/ missing"
+        echo "[FAIL] $dir/ missing"
         MISSING_DIRS=$((MISSING_DIRS + 1))
     fi
 done
 
 # Check templates in src/
 if [ -d "src/templates" ]; then
-    echo "✅ src/templates/ exists"
+    echo "[OK] src/templates/ exists"
 else
-    echo "❌ src/templates/ missing"
+    echo "[FAIL] src/templates/ missing"
     MISSING_DIRS=$((MISSING_DIRS + 1))
 fi
 
 if [ $MISSING_DIRS -gt 0 ]; then
-    echo "❌ Missing $MISSING_DIRS required directories"
+    echo "[FAIL] Missing $MISSING_DIRS required directories"
     exit 1
 fi
 
@@ -135,15 +135,15 @@ echo "8. Checking key files..."
 MISSING_FILES=0
 for file in README.md pyproject.toml requirements.txt .gitignore; do
     if [ -f "$file" ]; then
-        echo "✅ $file exists"
+        echo "[OK] $file exists"
     else
-        echo "❌ $file missing"
+        echo "[FAIL] $file missing"
         MISSING_FILES=$((MISSING_FILES + 1))
     fi
 done
 
 if [ $MISSING_FILES -gt 0 ]; then
-    echo "⚠️  Missing $MISSING_FILES recommended files"
+    echo "[WARN] Missing $MISSING_FILES recommended files"
 fi
 
 # 9. Check scripts are executable
@@ -153,9 +153,9 @@ if [ -d "scripts" ]; then
     NON_EXEC=0
     for script in scripts/*.py; do
         if [ -f "$script" ] && [ -x "$script" ]; then
-            echo "✅ $(basename $script) is executable"
+            echo "[OK] $(basename $script) is executable"
         elif [ -f "$script" ]; then
-            echo "⚠️  $(basename $script) not executable (chmod +x recommended)"
+            echo "[WARN] $(basename $script) not executable (chmod +x recommended)"
             NON_EXEC=$((NON_EXEC + 1))
         fi
     done
@@ -176,7 +176,7 @@ if [ -f "tests/fixtures/sample_login.mp4" ]; then
         > /dev/null 2>&1
 
     if [ $? -eq 0 ]; then
-        echo "✅ Scripts generated successfully"
+        echo "[OK] Scripts generated successfully"
 
         # Validate Python syntax
         PYTHON_ERRORS=0
@@ -184,9 +184,9 @@ if [ -f "tests/fixtures/sample_login.mp4" ]; then
             if [ -f "$pyfile" ]; then
                 python3 -m py_compile "$pyfile" 2>/dev/null
                 if [ $? -eq 0 ]; then
-                    echo "✅ $(basename $pyfile) - valid Python syntax"
+                    echo "[OK] $(basename $pyfile) - valid Python syntax"
                 else
-                    echo "❌ $(basename $pyfile) - syntax error"
+                    echo "[FAIL] $(basename $pyfile) - syntax error"
                     PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
                 fi
             fi
@@ -199,41 +199,41 @@ if [ -f "tests/fixtures/sample_login.mp4" ]; then
                 if [ -f "$jsfile" ]; then
                     node --check "$jsfile" 2>/dev/null
                     if [ $? -eq 0 ]; then
-                        echo "✅ $(basename $jsfile) - valid JavaScript syntax"
+                        echo "[OK] $(basename $jsfile) - valid JavaScript syntax"
                     else
-                        echo "❌ $(basename $jsfile) - syntax error"
+                        echo "[FAIL] $(basename $jsfile) - syntax error"
                         JS_ERRORS=$((JS_ERRORS + 1))
                     fi
                 fi
             done
 
             if [ $JS_ERRORS -gt 0 ]; then
-                echo "❌ JavaScript syntax errors found"
+                echo "[FAIL] JavaScript syntax errors found"
                 rm -rf "$TEST_OUTPUT_DIR"
                 exit 1
             fi
         else
-            echo "⚠️  Node.js not found, skipping JavaScript validation"
+            echo "[WARN] Node.js not found, skipping JavaScript validation"
         fi
 
         if [ $PYTHON_ERRORS -gt 0 ]; then
-            echo "❌ Python syntax errors found"
+            echo "[FAIL] Python syntax errors found"
             rm -rf "$TEST_OUTPUT_DIR"
             exit 1
         fi
     else
-        echo "⚠️  Failed to generate test scripts (Claude API may be unavailable)"
+        echo "[WARN] Failed to generate test scripts (Claude API may be unavailable)"
     fi
 
     # Clean up
     rm -rf "$TEST_OUTPUT_DIR"
 else
-    echo "⚠️  Sample video not found, skipping syntax validation"
+    echo "[WARN] Sample video not found, skipping syntax validation"
 fi
 
 echo ""
 echo "========================================="
-echo "✅ Validation complete!"
+echo "[OK] Validation complete!"
 echo "========================================="
 echo ""
 echo "Manual tests remaining:"
