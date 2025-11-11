@@ -1,4 +1,13 @@
 # Generated Selenium test: {{ workflow_name }}
+#
+# To run this test:
+#   1. Install Selenium: pip install selenium
+#   2. Download ChromeDriver: https://chromedriver.chromium.org/
+#   3. Run the test: python {{ workflow_name }}.py
+#
+# Note: This script waits up to 10 seconds for each element to appear.
+#       If elements still can't be found, the selectors may be incorrect.
+
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -8,20 +17,21 @@ import time
 
 def test_{{ workflow_name }}():
     driver = webdriver.Chrome()
+    wait = WebDriverWait(driver, 10)  # 10 second timeout for element waits
     try:
         {% for step in steps %}
         # {{ step.description }}
         {% if step.action_type == 'navigate' %}
         driver.get("{{ step.url }}")
         {% elif step.action_type == 'click' %}
-        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
+        element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "{{ step.target_element.selector }}")))
         element.click()
         {% elif step.action_type == 'type' %}
-        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
+        element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "{{ step.target_element.selector }}")))
         element.send_keys("{{ step.input_value }}")
         {% elif step.action_type == 'select' %}
         from selenium.webdriver.support.ui import Select
-        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
+        element = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "{{ step.target_element.selector }}")))
         select = Select(element)
         select.select_by_visible_text("{{ step.input_value }}")
         {% elif step.action_type == 'scroll' %}
