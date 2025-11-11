@@ -161,6 +161,76 @@ if [ -d "scripts" ]; then
     done
 fi
 
+# 10. Validate generated scripts syntax
+echo ""
+echo "10. Validating generated script syntax..."
+if [ -f "tests/fixtures/sample_login.mp4" ]; then
+    # Create temporary output directory
+    TEST_OUTPUT_DIR=$(mktemp -d)
+
+    # Generate test scripts
+    echo "  Generating test scripts..."
+    python3 scripts/analyze_video.py tests/fixtures/sample_login.mp4 \
+        --output-dir "$TEST_OUTPUT_DIR" \
+        --formats playwright selenium \
+        > /dev/null 2>&1
+
+    if [ $? -eq 0 ]; then
+        echo "✅ Scripts generated successfully"
+
+        # Validate Python syntax
+        PYTHON_ERRORS=0
+        for pyfile in "$TEST_OUTPUT_DIR"/*.py; do
+            if [ -f "$pyfile" ]; then
+                python3 -m py_compile "$pyfile" 2>/dev/null
+                if [ $? -eq 0 ]; then
+                    echo "✅ $(basename $pyfile) - valid Python syntax"
+                else
+                    echo "❌ $(basename $pyfile) - syntax error"
+                    PYTHON_ERRORS=$((PYTHON_ERRORS + 1))
+                fi
+            fi
+        done
+
+        # Validate JavaScript syntax (if node available)
+        if command -v node &> /dev/null; then
+            JS_ERRORS=0
+            for jsfile in "$TEST_OUTPUT_DIR"/*.js; do
+                if [ -f "$jsfile" ]; then
+                    node --check "$jsfile" 2>/dev/null
+                    if [ $? -eq 0 ]; then
+                        echo "✅ $(basename $jsfile) - valid JavaScript syntax"
+                    else
+                        echo "❌ $(basename $jsfile) - syntax error"
+                        JS_ERRORS=$((JS_ERRORS + 1))
+                    fi
+                fi
+            done
+
+            if [ $JS_ERRORS -gt 0 ]; then
+                echo "❌ JavaScript syntax errors found"
+                rm -rf "$TEST_OUTPUT_DIR"
+                exit 1
+            fi
+        else
+            echo "⚠️  Node.js not found, skipping JavaScript validation"
+        fi
+
+        if [ $PYTHON_ERRORS -gt 0 ]; then
+            echo "❌ Python syntax errors found"
+            rm -rf "$TEST_OUTPUT_DIR"
+            exit 1
+        fi
+    else
+        echo "⚠️  Failed to generate test scripts (Claude API may be unavailable)"
+    fi
+
+    # Clean up
+    rm -rf "$TEST_OUTPUT_DIR"
+else
+    echo "⚠️  Sample video not found, skipping syntax validation"
+fi
+
 echo ""
 echo "========================================="
 echo "✅ Validation complete!"

@@ -20,11 +20,31 @@ import argparse
 import asyncio
 from pathlib import Path
 import json
+import subprocess
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add src to path (robust handling)
+SCRIPT_DIR = Path(__file__).resolve().parent
+SKILL_ROOT = SCRIPT_DIR.parent
+SRC_DIR = SKILL_ROOT / "src"
+
+# Verify src directory exists
+if not SRC_DIR.exists():
+    print(f"Error: Source directory not found: {SRC_DIR}", file=sys.stderr)
+    print("Make sure you're running this script from the correct location.", file=sys.stderr)
+    sys.exit(1)
+
+# Add to path if not already present
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
 
 from video_analyzer import VideoProcessor, ClaudeAnalyzer, ScriptGenerator
+
+# Optional progress indicator
+try:
+    from tqdm import tqdm
+    TQDM_AVAILABLE = True
+except ImportError:
+    TQDM_AVAILABLE = False
 
 
 async def main():
@@ -62,6 +82,25 @@ async def main():
 
     args = parser.parse_args()
 
+    # Check FFmpeg availability before processing
+    try:
+        subprocess.run(
+            ['ffmpeg', '-version'],
+            capture_output=True,
+            check=True,
+            timeout=5
+        )
+    except FileNotFoundError:
+        print("Error: ffmpeg is required but not found.", file=sys.stderr)
+        print("Please install ffmpeg: https://ffmpeg.org/download.html", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: ffmpeg not working correctly: {e}", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.TimeoutExpired:
+        print("Error: ffmpeg check timed out", file=sys.stderr)
+        sys.exit(1)
+
     # Validate video file
     video_path = Path(args.video_path)
     if not video_path.exists():
@@ -81,6 +120,19 @@ async def main():
         print("Extracting frames...")
         processor = VideoProcessor(fps_sample=args.fps)
         frames = processor.extract_key_frames(str(video_path))
+
+        # Validate frame extraction
+        if not frames:
+            print("Error: No frames could be extracted from video.", file=sys.stderr)
+            print("Possible causes:", file=sys.stderr)
+            print("  - Video file is corrupted", file=sys.stderr)
+            print("  - Video codec not supported", file=sys.stderr)
+            print("  - Video is too short (< 1 second)", file=sys.stderr)
+            sys.exit(1)
+
+        if len(frames) < 3:
+            print(f"Warning: Only {len(frames)} frames extracted. Analysis may be incomplete.", file=sys.stderr)
+
         print(f"Extracted {len(frames)} key frames")
 
         # 2. Analyze frames
@@ -89,15 +141,31 @@ async def main():
         analyses = []
         context = []
 
-        for i, (timestamp, frame) in enumerate(frames):
+        # Create progress indicator
+        total_frames = len(frames)
+        if TQDM_AVAILABLE:
+            # Use tqdm progress bar
+            frame_iterator = tqdm(enumerate(frames), total=total_frames, desc="Analyzing frames", unit="frame")
+        else:
+            frame_iterator = enumerate(frames)
+
+        for i, (timestamp, frame) in frame_iterator:
             if args.verbose:
-                print(f"  Analyzing frame {i+1}/{len(frames)} @ {timestamp}ms...")
+                print(f"  Analyzing frame {i+1}/{total_frames} @ {timestamp}ms...")
+            elif not TQDM_AVAILABLE and i % 5 == 0:
+                # Simple percentage indicator (every 5 frames)
+                percentage = (i / total_frames) * 100
+                print(f"Progress: {percentage:.1f}% ({i}/{total_frames} frames)", end='\r')
 
             frame_base64 = processor.frame_to_base64(frame)
             analysis = await analyzer.analyze_frame(frame_base64, timestamp, context)
 
             analyses.append(analysis)
             context.append(analysis)
+
+        # Clear progress line if using percentage indicator
+        if not TQDM_AVAILABLE and not args.verbose:
+            print(" " * 80, end='\r')  # Clear the line
 
         print(f"Analyzed {len(analyses)} frames")
 

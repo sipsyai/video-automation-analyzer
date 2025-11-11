@@ -34,15 +34,25 @@ class VideoProcessor:
 
         Raises:
             FileNotFoundError: If video file doesn't exist
-            ValueError: If video format is unsupported
+            RuntimeError: If video cannot be opened (codec issues)
+            ValueError: If video is empty or corrupted
         """
-        # Validate file
+        # Validate file exists
         if not Path(video_path).exists():
             raise FileNotFoundError(f"Video not found: {video_path}")
 
         cap = cv2.VideoCapture(video_path)
         if not cap.isOpened():
-            raise ValueError(f"Cannot open video: {video_path}")
+            raise RuntimeError(
+                f"Failed to open video file: {video_path}. "
+                "Check codec support and ensure ffmpeg is installed."
+            )
+
+        # Check video is not empty
+        total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        if total_frames == 0:
+            cap.release()
+            raise ValueError(f"Video file appears to be empty or corrupted: {video_path}")
 
         fps = cap.get(cv2.CAP_PROP_FPS)
         frame_interval = max(1, int(fps / self.fps_sample))

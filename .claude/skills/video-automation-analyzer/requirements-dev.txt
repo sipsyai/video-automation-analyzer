@@ -1,0 +1,17 @@
+# Development dependencies
+# This includes both runtime and development dependencies
+
+# Include runtime dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# Code quality (optional but recommended)
+black>=23.7.0
+mypy>=1.5.0
+
+# Progress indicators (optional but recommended)
+tqdm>=4.65.0
