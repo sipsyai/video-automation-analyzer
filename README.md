@@ -231,6 +231,129 @@ Built-in scripts to validate generated automation code:
 python scripts/validate_output.py <generated_script>
 ```
 
+## How It Works: Claude Vision Integration
+
+This project uses **Claude Agent SDK** to analyze video frames and extract automation workflows. Here's the complete technical flow:
+
+### Architecture Overview
+
+```
+User Request (video analysis)
+    ↓
+MCP Server or CLI Script
+    ↓
+VideoProcessor.extract_key_frames() → Extract frames from video
+    ↓
+FOR EACH FRAME:
+    ↓
+    ClaudeAnalyzer.analyze_frame()
+        ↓
+        ClaudeSDKClient.query() ← CLAUDE VISION API CALL
+        ↓
+        ClaudeSDKClient.receive_response() ← Get JSON response
+        ↓
+        FrameAnalysis object created
+    ↓
+ClaudeAnalyzer.generate_workflow_summary()
+    ↓
+    ClaudeSDKClient.query() ← WORKFLOW SUMMARY REQUEST
+    ↓
+    ClaudeSDKClient.receive_response() ← Get summary text
+    ↓
+ScriptGenerator → Generate Playwright, Selenium, Windows-MCP scripts
+```
+
+### Claude SDK Usage Points
+
+#### 1. Client Initialization
+**Location**: `claude_analyzer.py:21-30`
+
+```python
+async def _ensure_client(self):
+    if self.client is None:
+        options = ClaudeAgentOptions(
+            allowed_tools=["Read"],      # For reading frame files
+            model="sonnet",               # Claude Sonnet model
+            permission_mode="bypassPermissions"  # No prompts in Claude Code
+        )
+        self.client = ClaudeSDKClient(options=options)
+        await self.client.connect()
+```
+
+#### 2. Frame Analysis
+**Location**: `claude_analyzer.py:38-139`
+
+For each video frame, the analyzer:
+1. Saves frame as temporary image file
+2. Builds context from previous actions
+3. Sends prompt to Claude Vision API requesting:
+   - Action type (click, type, navigate, scroll, select)
+   - Target UI element details
+   - Input values
+   - Current URL
+   - Description
+4. Receives structured JSON response
+5. Parses and validates using Pydantic models
+
+**API Call**:
+```python
+await self.client.query(prompt)  # Send frame analysis request
+
+async for message in self.client.receive_response():
+    if isinstance(message, AssistantMessage):
+        for block in message.content:
+            if isinstance(block, TextBlock):
+                response_text += block.text
+```
+
+#### 3. Workflow Summary Generation
+**Location**: `claude_analyzer.py:141-189`
+
+After all frames are analyzed:
+1. Collects all detected actions
+2. Sends summary request to Claude
+3. Receives high-level workflow description
+4. Returns actionable summary with edge cases
+
+### API Call Statistics
+
+For a **30-second video** at 1 FPS:
+- **~30 Claude Vision API calls** (1 per frame)
+- **1 Claude API call** (workflow summary)
+- **Total: ~31 API calls**
+
+### No API Key Required
+
+The Claude Agent SDK operates within Claude Code environment with automatic authentication. No API keys are needed.
+
+### Entry Points
+
+**Via MCP Server** (`server.py:104-116`):
+```python
+for timestamp, frame in frames:
+    analysis = await claude_analyzer.analyze_frame(frame_base64, timestamp, context)
+
+summary = await claude_analyzer.generate_workflow_summary(analyses)
+```
+
+**Via CLI Script** (`scripts/analyze_video.py:140-174`):
+```python
+analyzer = ClaudeAnalyzer()
+
+for timestamp, frame in frames:
+    analysis = await analyzer.analyze_frame(frame_base64, timestamp, context)
+
+summary = await analyzer.generate_workflow_summary(analyses)
+```
+
+### Key Features
+
+- **Context-Aware**: Each frame analysis includes context from previous frames
+- **Structured Output**: JSON responses validated with Pydantic models
+- **Error Handling**: Graceful degradation on analysis failures
+- **Automatic Cleanup**: Temporary files removed after processing
+- **Progress Tracking**: Optional tqdm progress bars in CLI mode
+
 ## Requirements
 
 Core dependencies:
