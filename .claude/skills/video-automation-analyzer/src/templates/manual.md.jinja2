@@ -1,0 +1,18 @@
+# Manual Steps: {{ workflow_name }}
+
+{% for step in steps %}
+## Step {{ loop.index }}: {{ step.description }}
+
+**Action**: {{ step.action_type }}
+{% if step.target_element.text %}
+**Element**: {{ step.target_element.text }}
+{% endif %}
+{% if step.input_value %}
+**Input**: {{ step.input_value }}
+{% endif %}
+{% if step.url %}
+**URL**: {{ step.url }}
+{% endif %}
+
+---
+{% endfor %}

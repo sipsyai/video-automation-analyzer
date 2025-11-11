@@ -1,0 +1,37 @@
+# Generated Selenium test: {{ workflow_name }}
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+
+
+def test_{{ workflow_name }}():
+    driver = webdriver.Chrome()
+    try:
+        {% for step in steps %}
+        # {{ step.description }}
+        {% if step.action_type == 'navigate' %}
+        driver.get('{{ step.url }}')
+        {% elif step.action_type == 'click' %}
+        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
+        element.click()
+        {% elif step.action_type == 'type' %}
+        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
+        element.send_keys('{{ step.input_value }}')
+        {% elif step.action_type == 'select' %}
+        from selenium.webdriver.support.ui import Select
+        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
+        select = Select(element)
+        select.select_by_visible_text('{{ step.input_value }}')
+        {% elif step.action_type == 'scroll' %}
+        driver.execute_script("window.scrollBy(0, {{ step.target_element.location.y or 100 }})")
+        {% endif %}
+        time.sleep({{ step.wait_time / 1000 }})
+        {% endfor %}
+    finally:
+        driver.quit()
+
+
+if __name__ == '__main__':
+    test_{{ workflow_name }}()

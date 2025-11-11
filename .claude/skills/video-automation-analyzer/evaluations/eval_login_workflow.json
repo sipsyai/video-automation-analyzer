@@ -1,0 +1,22 @@
+{
+  "name": "Login Workflow Analysis",
+  "skills": ["video-automation-analyzer"],
+  "query": "Analyze this video recording of a login workflow and generate a Playwright test script",
+  "files": ["tests/fixtures/sample_login.mp4"],
+  "expected_behavior": [
+    "Successfully extracts frames from the video file",
+    "Detects navigation to login page",
+    "Detects username input action",
+    "Detects password input action",
+    "Detects login button click",
+    "Generates valid Playwright script with correct selectors",
+    "Generated script includes proper wait times",
+    "Script has error handling (try/catch)"
+  ],
+  "success_criteria": [
+    "All 4 main actions detected (navigate, username, password, login)",
+    "Playwright script is syntactically valid JavaScript",
+    "Script contains page.goto(), page.fill() for both fields, and page.click()",
+    "No empty selectors in generated code"
+  ]
+}

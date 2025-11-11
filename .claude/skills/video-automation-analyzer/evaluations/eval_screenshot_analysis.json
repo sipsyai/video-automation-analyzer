@@ -1,0 +1,19 @@
+{
+  "name": "Single Screenshot Analysis",
+  "skills": ["video-automation-analyzer"],
+  "query": "What action is happening in this screenshot?",
+  "files": ["tests/fixtures/screenshot_click.png"],
+  "expected_behavior": [
+    "Analyzes the screenshot successfully",
+    "Identifies the UI element being interacted with",
+    "Determines the action type (click, type, etc.)",
+    "Provides a clear description",
+    "Suggests a CSS selector for the element"
+  ],
+  "success_criteria": [
+    "Action type is correctly identified",
+    "Target element is described",
+    "Selector suggestion is provided",
+    "Description is concise and accurate"
+  ]
+}

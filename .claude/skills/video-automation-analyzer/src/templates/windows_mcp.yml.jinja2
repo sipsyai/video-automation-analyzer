@@ -1,0 +1,21 @@
+# Generated Windows MCP sequence: {{ workflow_name }}
+name: {{ workflow_name }}
+description: Automated workflow extracted from video recording
+
+steps:
+{% for step in steps %}
+  - action: {{ step.action_type }}
+    description: {{ step.description }}
+    {% if step.action_type == 'click' %}
+    target:
+      text: "{{ step.target_element.text or '' }}"
+      location:
+        x: {{ step.target_element.location.x or 0 }}
+        y: {{ step.target_element.location.y or 0 }}
+    {% elif step.action_type == 'type' %}
+    target:
+      text: "{{ step.target_element.text or '' }}"
+    input: "{{ step.input_value }}"
+    {% endif %}
+    wait: {{ step.wait_time }}
+{% endfor %}

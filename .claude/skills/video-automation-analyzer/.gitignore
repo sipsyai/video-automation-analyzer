@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+output/
+temp_frames/
+output_test*/
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Test results
+test-results/
+*.png
+*.jpg
+*.jpeg
+
+# Excel test files
+*.xlsx
+*.xls
+
+# Test artifacts
+rpa_challenge_result.*

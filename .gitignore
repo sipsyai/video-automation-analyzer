@@ -1,0 +1,43 @@
+# Test videos
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Test output directories
+output_*/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Keep documentation
+!skill-best-practices.md
+!claudeagentsdk_python.md

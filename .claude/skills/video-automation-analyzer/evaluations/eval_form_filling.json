@@ -1,0 +1,20 @@
+{
+  "name": "Form Filling Workflow",
+  "skills": ["video-automation-analyzer"],
+  "query": "Extract the workflow from this form-filling video and create manual step-by-step instructions",
+  "files": ["tests/fixtures/sample_form.mp4"],
+  "expected_behavior": [
+    "Extracts frames at appropriate intervals",
+    "Detects each form field interaction",
+    "Identifies field labels and types",
+    "Captures input values",
+    "Generates clear, numbered manual steps",
+    "Includes field labels in instructions"
+  ],
+  "success_criteria": [
+    "All form fields detected",
+    "Manual steps are human-readable",
+    "Steps are in correct sequential order",
+    "Input values are captured accurately"
+  ]
+}
