@@ -23,12 +23,46 @@ Video Automation Analyzer bridges the gap between manual processes and automated
 - Python 3.8 or higher
 - ffmpeg (for video processing)
 
-### Install the Skill
+### Quick Install (Recommended)
 
+**Linux/macOS:**
 ```bash
 # Clone or download this repository
 git clone <repository-url>
 cd video-automation-analyzer
+
+# Run the installation script
+./install.sh
+```
+
+**Windows:**
+```batch
+REM Clone or download this repository
+git clone <repository-url>
+cd video-automation-analyzer
+
+REM Run the installation script
+install.bat
+```
+
+The installation scripts will:
+1. Verify Python 3.8+ is installed
+2. Create a Python virtual environment (`venv/`)
+3. Install all required dependencies
+4. Provide activation instructions
+
+### Manual Installation
+
+If you prefer to install manually:
+
+```bash
+# Create virtual environment
+python3 -m venv venv  # Linux/macOS
+python -m venv venv   # Windows
+
+# Activate virtual environment
+source venv/bin/activate  # Linux/macOS
+venv\Scripts\activate.bat # Windows
 
 # Install dependencies
 pip install -r .claude/skills/video-automation-analyzer/requirements.txt
@@ -37,6 +71,22 @@ pip install -r .claude/skills/video-automation-analyzer/requirements.txt
 ### Add to Claude Code
 
 This skill is automatically available in Claude Code when present in the `.claude/skills` directory.
+
+### Installing ffmpeg
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt-get update
+sudo apt-get install ffmpeg
+```
+
+**macOS:**
+```bash
+brew install ffmpeg
+```
+
+**Windows:**
+Download from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html) and add to PATH.
 
 ## Quick Start
 
