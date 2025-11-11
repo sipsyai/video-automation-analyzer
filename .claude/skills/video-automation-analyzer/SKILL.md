@@ -15,6 +15,24 @@ analyze_video_workflow:
   output_formats: ["playwright", "manual"]
 ```
 
+### Direct CLI Usage
+
+```bash
+# Basic usage - generates Playwright + manual steps
+python scripts/analyze_video.py recording.mp4
+
+# Generate Selenium script
+python scripts/analyze_video.py recording.mp4 --formats selenium
+
+# Multiple formats with custom output
+python scripts/analyze_video.py recording.mp4 \
+  --formats playwright selenium windows-mcp manual \
+  --output-dir ./automation_scripts
+
+# Higher frame rate for detailed capture
+python scripts/analyze_video.py recording.mp4 --fps 2.0
+```
+
 ## Output Formats
 
 - **Playwright** (`playwright/`) - JavaScript/TypeScript test automation
