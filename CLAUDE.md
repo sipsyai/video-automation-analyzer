@@ -147,7 +147,44 @@ Simply invoke the skill in Claude Code:
 "Extract workflow from video.mp4 as Selenium and manual docs"
 ```
 
+### ScriptGenerator Configuration Options
+
+```python
+# Create generator with custom options
+generator = ScriptGenerator(
+    validate_syntax=True,  # Enable syntax validation (default: True)
+    web_only=True          # Filter desktop operations (default: True)
+)
+
+# Generate scripts
+selenium_script = generator.generate_selenium(analyses, "workflow_name")
+playwright_script = generator.generate_playwright(analyses, "workflow_name")
+```
+
+**Options**:
+- `validate_syntax`: Automatically validates generated scripts using py_compile (Python) and Node.js (JavaScript)
+- `web_only`: Filters out desktop operations from Selenium/Playwright scripts (see Known Limitations)
+
 ## Important Conventions
+
+### File I/O Best Practices
+
+**IMPORTANT**: Always use UTF-8 encoding for file operations:
+
+```python
+# ✅ CORRECT: Explicit UTF-8 encoding
+with open(file_path, "w", encoding="utf-8") as f:
+    f.write(content)
+
+# ❌ WRONG: System default encoding (fails on Windows with Unicode)
+with open(file_path, "w") as f:
+    f.write(content)
+```
+
+**Why this matters**:
+- Windows defaults to cp1252 encoding, which cannot handle Unicode characters (→, ✓, etc.)
+- Claude Vision API output contains Unicode characters
+- Without UTF-8 encoding, file writes will fail on Windows: `UnicodeEncodeError`
 
 ### Test Markers
 
@@ -170,6 +207,11 @@ When modifying script generation:
 1. Edit the appropriate Jinja2 template in `src/templates/`
 2. Ensure template variables match `FrameAnalysis` model structure
 3. Test generated scripts for syntax validity
+
+**Quote Escaping**: Templates use specific quoting strategies:
+- **Selenium (Python)**: Double quotes for all strings to avoid conflicts with single quotes in selectors
+- **Playwright (JavaScript)**: Backticks (template literals) to handle both quote types
+- Example: `input[ng-reflect-name='firstName']` works correctly in both formats
 
 ## Project Structure
 
@@ -215,3 +257,86 @@ Development dependencies:
 
 System requirement:
 - **ffmpeg** - Required for video processing (must be installed separately)
+
+## Known Limitations
+
+### Web Automation Scope
+
+**Selenium and Playwright are web-only**:
+- ❌ Cannot automate Windows desktop operations (Start Menu, File Explorer, etc.)
+- ❌ Cannot automate native desktop applications
+- ✅ Can only automate web browsers and web applications
+
+**Solution**: When videos contain both desktop and web operations:
+1. **Selenium/Playwright scripts** automatically filter out desktop actions (with `web_only=True`)
+2. **Windows-MCP scripts** include full workflow including desktop operations
+3. Generated scripts include comment noting how many desktop operations were skipped
+
+Example:
+```python
+# Note: 3 desktop operation(s) skipped
+# See workflow_windows_mcp.yml for full automation including desktop
+```
+
+### When to Use Each Format
+
+| Format | Use Case | Can Automate |
+|--------|----------|--------------|
+| **Selenium** | Web testing, form automation | Websites only |
+| **Playwright** | Modern web testing, SPAs | Websites only |
+| **Windows-MCP** | Desktop + web workflows | Everything |
+| **Manual Steps** | Documentation, training | N/A (human) |
+
+### Script Generation Validation
+
+- Python scripts validated with `py_compile` (always available)
+- JavaScript scripts validated with Node.js (optional, gracefully skipped if unavailable)
+- Validation warnings logged but don't prevent script generation
+
+## Privacy & Security Considerations
+
+⚠️ **The skill extracts ALL visible content from screen recordings**, including:
+
+- **URLs** (may contain session tokens or document IDs)
+- **Email addresses and personal information**
+- **File paths** (local system information)
+- **Credentials** if visible on screen
+- **Proprietary data** in forms, spreadsheets, etc.
+
+### Best Practices for Safe Usage
+
+1. **Review `analyses.json` before sharing** - Contains full extracted data
+2. **Use test accounts** for recorded workflows
+3. **Sanitize output** before committing to version control
+4. **Avoid recording** sensitive operations (login with real passwords, etc.)
+5. **Consider security** when analyzing workflows from third parties
+
+### Safe Recording Checklist
+
+✅ Use dummy/test data instead of real data
+✅ Blur sensitive information in video if possible
+✅ Review generated files before sharing
+✅ Use test credentials, not production credentials
+✅ Verify URLs don't contain session tokens
+
+## Recent Fixes & Improvements
+
+### v1.1 (2025-11-11)
+
+**Critical Fixes**:
+- ✅ Fixed quote escaping in Selenium templates (Python syntax errors)
+- ✅ Fixed quote escaping in Playwright templates (JavaScript syntax errors)
+- ✅ Added UTF-8 encoding to all file write operations (Windows compatibility)
+
+**Enhancements**:
+- ✅ Integrated syntax validation into ScriptGenerator
+- ✅ Added smart action filtering (`web_only` mode)
+- ✅ Comprehensive test coverage for syntax validation
+- ✅ Quote escaping test cases
+
+**Before v1.1** (known issues):
+- Generated Selenium scripts had syntax errors with selectors like `input[ng-reflect-name='firstName']`
+- Windows users encountered `UnicodeEncodeError` when saving files with Unicode characters
+- Desktop operations included in web-only scripts, causing runtime errors
+
+**All issues resolved in v1.1**.

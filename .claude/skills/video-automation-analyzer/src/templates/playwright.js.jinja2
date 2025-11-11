@@ -5,13 +5,13 @@ test('{{ workflow_name }}', async ({ page }) => {
   {% for step in steps %}
   // {{ step.description }}
   {% if step.action_type == 'navigate' %}
-  await page.goto('{{ step.url }}');
+  await page.goto(`{{ step.url }}`);
   {% elif step.action_type == 'click' %}
-  await page.click('{{ step.target_element.selector or step.target_element.text }}');
+  await page.click(`{{ step.target_element.selector or step.target_element.text }}`);
   {% elif step.action_type == 'type' %}
-  await page.fill('{{ step.target_element.selector }}', '{{ step.input_value }}');
+  await page.fill(`{{ step.target_element.selector }}`, `{{ step.input_value }}`);
   {% elif step.action_type == 'select' %}
-  await page.selectOption('{{ step.target_element.selector }}', '{{ step.input_value }}');
+  await page.selectOption(`{{ step.target_element.selector }}`, `{{ step.input_value }}`);
   {% elif step.action_type == 'scroll' %}
   await page.evaluate(() => window.scrollBy(0, {{ step.target_element.location.y or 100 }}));
   {% endif %}

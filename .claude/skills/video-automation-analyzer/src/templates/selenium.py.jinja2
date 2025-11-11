@@ -12,18 +12,18 @@ def test_{{ workflow_name }}():
         {% for step in steps %}
         # {{ step.description }}
         {% if step.action_type == 'navigate' %}
-        driver.get('{{ step.url }}')
+        driver.get("{{ step.url }}")
         {% elif step.action_type == 'click' %}
-        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
+        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
         element.click()
         {% elif step.action_type == 'type' %}
-        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
-        element.send_keys('{{ step.input_value }}')
+        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
+        element.send_keys("{{ step.input_value }}")
         {% elif step.action_type == 'select' %}
         from selenium.webdriver.support.ui import Select
-        element = driver.find_element(By.CSS_SELECTOR, '{{ step.target_element.selector }}')
+        element = driver.find_element(By.CSS_SELECTOR, "{{ step.target_element.selector }}")
         select = Select(element)
-        select.select_by_visible_text('{{ step.input_value }}')
+        select.select_by_visible_text("{{ step.input_value }}")
         {% elif step.action_type == 'scroll' %}
         driver.execute_script("window.scrollBy(0, {{ step.target_element.location.y or 100 }})")
         {% endif %}

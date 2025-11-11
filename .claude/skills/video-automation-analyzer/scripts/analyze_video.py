@@ -111,13 +111,13 @@ async def main():
 
         # Save analyses
         analyses_file = output_dir / "analyses.json"
-        with open(analyses_file, "w") as f:
+        with open(analyses_file, "w", encoding="utf-8") as f:
             json.dump([a.model_dump() for a in analyses], f, indent=2)
         print(f"  Saved analyses to {analyses_file}")
 
         # Save summary
         summary_file = output_dir / "summary.md"
-        with open(summary_file, "w") as f:
+        with open(summary_file, "w", encoding="utf-8") as f:
             f.write(f"# Workflow Summary\n\n{summary}\n")
         print(f"  Saved summary to {summary_file}")
 
@@ -127,28 +127,28 @@ async def main():
         if "playwright" in args.formats:
             script = generator.generate_playwright(analyses, workflow_name)
             script_file = output_dir / "workflow_playwright.js"
-            with open(script_file, "w") as f:
+            with open(script_file, "w", encoding="utf-8") as f:
                 f.write(script)
             print(f"  Saved Playwright script to {script_file}")
 
         if "selenium" in args.formats:
             script = generator.generate_selenium(analyses, workflow_name)
             script_file = output_dir / "workflow_selenium.py"
-            with open(script_file, "w") as f:
+            with open(script_file, "w", encoding="utf-8") as f:
                 f.write(script)
             print(f"  Saved Selenium script to {script_file}")
 
         if "windows-mcp" in args.formats:
             script = generator.generate_windows_mcp(analyses, workflow_name)
             script_file = output_dir / "workflow_windows_mcp.yml"
-            with open(script_file, "w") as f:
+            with open(script_file, "w", encoding="utf-8") as f:
                 f.write(script)
             print(f"  Saved Windows-MCP script to {script_file}")
 
         if "manual" in args.formats:
             steps = generator.generate_manual_steps(analyses, workflow_name)
             steps_file = output_dir / "manual_steps.md"
-            with open(steps_file, "w") as f:
+            with open(steps_file, "w", encoding="utf-8") as f:
                 f.write(steps)
             print(f"  Saved manual steps to {steps_file}")
 
