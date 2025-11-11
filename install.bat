@@ -62,6 +62,14 @@ if errorlevel 1 (
 )
 echo.
 
+echo Step 5: Installing Playwright browsers...
+playwright install
+if errorlevel 1 (
+    echo WARNING: Failed to install Playwright browsers.
+    echo You can install them later with: playwright install
+)
+echo.
+
 echo =========================================
 echo Installation completed successfully!
 echo =========================================

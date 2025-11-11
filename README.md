@@ -364,7 +364,13 @@ Core dependencies:
 - `pydantic>=2.10.0` - Data validation
 - `jinja2>=3.1.0` - Template engine
 
+Automation frameworks:
+- `selenium>=4.15.0` - For validating and running Selenium scripts
+- `playwright>=1.40.0` - For validating and running Playwright scripts
+
 See [requirements.txt](.claude/skills/video-automation-analyzer/requirements.txt) for the complete list.
+
+**Note**: The installation scripts automatically install Playwright browsers with `playwright install`.
 
 ## Testing
 

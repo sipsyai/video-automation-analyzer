@@ -46,6 +46,10 @@ echo "Step 4: Installing dependencies..."
 pip install -r .claude/skills/video-automation-analyzer/requirements.txt
 
 echo ""
+echo "Step 5: Installing Playwright browsers..."
+playwright install
+
+echo ""
 echo "========================================="
 echo "Installation completed successfully!"
 echo "========================================="
